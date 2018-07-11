@@ -372,9 +372,6 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	vehicle_attitude_setpoint_poll();
 	_thrust_sp = _v_att_sp.thrust;
 
-	/* get horizontal thrust command from yaw channel */
-	_hthrust_sp = _v_att_sp.yaw;
-
 	/* prepare yaw weight from the ratio between roll/pitch and yaw gains */
 	Vector3f attitude_gain = _attitude_p;
 	const float roll_pitch_gain = (attitude_gain(0) + attitude_gain(1)) / 2.f;
@@ -461,10 +458,14 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	 * This yields a vector representing the commanded rotatation around the world z-axis expressed in the body frame
 	 * such that it can be added to the rates setpoint.
 	 */
-	Vector3f yaw_feedforward_rate = q.inversed().dcm_z();
-	yaw_feedforward_rate *= _v_att_sp.yaw_sp_move_rate * _yaw_ff.get();
-	_rates_sp += yaw_feedforward_rate;
 
+	// JC: Do not use _v_att_sp.yaw_sp_move_rate to calculate yaw_feedforward rate as we are using it to control horizontal thrust
+	//Vector3f yaw_feedforward_rate = q.inversed().dcm_z();
+	//yaw_feedforward_rate *= _v_att_sp.yaw_sp_move_rate * _yaw_ff.get();
+	//_rates_sp += yaw_feedforward_rate;
+
+	/* use _v_att_sp.yaw_sp_move_rate to control horizontal thrust */
+	_hthrust_sp = _v_att_sp.yaw_sp_move_rate;
 
 	/* limit rates */
 	for (int i = 0; i < 3; i++) {
