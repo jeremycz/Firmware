@@ -169,6 +169,10 @@ MultirotorMixer::mix(float *outputs, unsigned space)
 	float		min_out = 1.0f;
 	float		max_out = 0.0f;
 
+	// motor mixing for tilted rotors
+	float 		xthrust_rotors[8] = {0.4142136, -0.4142136, -1.0, -0.4142136, 0.4142136, 1.0, -1.0, 1.0};
+	float 		ythrust_rotors[8] = {-1.0, 1.0, 0.4142136, -1.0, 1.0, -0.4142136, -0.4142136, 0.4142136};
+
 	// reverse yaw command to match rotor directions from ardupilot convention
 	yaw *= -1.0f;
 
