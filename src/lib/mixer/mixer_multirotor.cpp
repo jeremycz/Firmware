@@ -164,6 +164,7 @@ MultirotorMixer::mix(float *outputs, unsigned space)
 	float		pitch   = math::constrain(get_control(0, 1) * _pitch_scale, -1.0f, 1.0f);
 	float		yaw     = math::constrain(get_control(0, 2) * _yaw_scale, -1.0f, 1.0f);
 	float		thrust  = math::constrain(get_control(0, 3), 0.0f, 1.0f);
+	float		hthrust = math::constrain(get_control(0, 4), -1.0f, 1.0f);
 	float		min_out = 1.0f;
 	float		max_out = 0.0f;
 
