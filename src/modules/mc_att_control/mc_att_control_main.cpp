@@ -382,8 +382,39 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	attitude_gain(2) = roll_pitch_gain;
 
 	/* get estimated and desired vehicle attitude */
-	Quatf q(_v_att.q);
-	Quatf qd(_v_att_sp.q_d);
+	// Quatf q(_v_att.q);
+	// Quatf qd(_v_att_sp.q_d);
+
+	/* calculate estimated and desired roll/pitch angles */
+	float sinr = 2.0 * (_v_att.q[0] * _v_att.q[1] + _v_att.q[2] * _v_att.q[4]);
+	float cosr = 1.0 - 2.0 * (_v_att.q[1] * _v_att.q[1] + _v_att.q[2] * _v_att.q[2]);
+	float roll_angle = atan2f(sinr, cosr);
+
+	float sinp = 2.0 * (_v_att.q[0] * _v_att.q[2] + _v_att.q[3] * _v_att.q[1]);
+	float pitch_angle = 0.0;
+	if (fabsf(sinp) >= 1) {
+		pitch_angle = copysignf(M_PI / 2, sinp);
+	} else {
+		pitch_angle = asinf(sinp);
+	}
+
+	float sinrd = 2.0 * (_v_att_sp.q_d[0] * _v_att_sp.q_d[1] + _v_att_sp.q_d[2] * _v_att_sp.q_d[3]);
+	float cosrd = 1.0 - 2.0 * (_v_att_sp.q_d[1] * _v_att_sp.q_d[1] + _v_att_sp.q_d[2] * _v_att_sp.q_d[2]);
+	float roll_angle_d = atan2f(sinrd, cosrd);
+
+	float sinpd = 2.0 * (_v_att_sp.q_d[0] * _v_att_sp.q_d[2] + _v_att_sp.q_d[3] * _v_att_sp.q_d[1]);
+	float pitch_angle_d = 0.0;
+	if (fabsf(sinpd) >= 1) {
+		pitch_angle_d = copysignf(M_PI / 2, sinpd);
+	} else {
+		pitch_angle_d = asinf(sinpd);
+	}
+
+	/* recompute estimated and desired attitude quaternions with yaw angle set to zero */
+	Eulerf euler(roll_angle, pitch_angle, 0.f);
+	Eulerf euler_d(roll_angle_d, pitch_angle_d, 0.f);
+	Quatf q(euler);
+	Quatf qd(euler_d);
 
 	/* ensure input quaternions are exactly normalized because acosf(1.00001) == NaN */
 	q.normalize();
@@ -399,7 +430,6 @@ MulticopterAttitudeControl::control_attitude(float dt)
 		 * full attitude control anyways generates no yaw input and directly takes the combination of
 		 * roll and pitch leading to the correct desired yaw. Ignoring this case would still be totally safe and stable. */
 		qd_red = qd;
-
 	} else {
 		/* transform rotation from current to desired thrust vector into a world frame reduced desired attitude */
 		qd_red *= q;
