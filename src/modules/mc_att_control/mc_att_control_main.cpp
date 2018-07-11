@@ -88,6 +88,9 @@ https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/154099/eth
 ### Implementation
 To reduce control latency, the module directly polls on the gyro topic published by the IMU driver.
 
+### Modifications
+JC - Yaw channel mapped to horizontal thrust for tilted-rotor octocopter - non-flying version.
+
 )DESCR_STR");
 
 	PRINT_MODULE_USAGE_NAME("mc_att_control", "controller");
@@ -361,13 +364,16 @@ MulticopterAttitudeControl::sensor_bias_poll()
 /**
  * Attitude controller.
  * Input: 'vehicle_attitude_setpoint' topics (depending on mode)
- * Output: '_rates_sp' vector, '_thrust_sp'
+ * Output: '_rates_sp' vector, '_thrust_sp', '_hthrust_sp'
  */
 void
 MulticopterAttitudeControl::control_attitude(float dt)
 {
 	vehicle_attitude_setpoint_poll();
 	_thrust_sp = _v_att_sp.thrust;
+
+	/* get horizontal thrust command from yaw channel */
+	_hthrust_sp = _v_att_sp.yaw;
 
 	/* prepare yaw weight from the ratio between roll/pitch and yaw gains */
 	Vector3f attitude_gain = _attitude_p;
