@@ -183,7 +183,9 @@ MultirotorMixer::mix(float *outputs, unsigned space)
 	for (unsigned i = 0; i < _rotor_count; i++) {
 		float out = roll * _rotors[i].roll_scale +
 			    pitch * _rotors[i].pitch_scale +
-			    thrust * _rotors[i].thrust_scale;
+			    thrust * _rotors[i].thrust_scale +
+				xthrust * xthrust_rotors[i] * _yaw_scale +
+				ythrust * ythrust_rotors[i] * _yaw_scale;
 
 		/* calculate min and max output values */
 		if (out < min_out) {
