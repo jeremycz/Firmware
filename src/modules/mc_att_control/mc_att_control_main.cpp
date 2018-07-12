@@ -90,6 +90,7 @@ To reduce control latency, the module directly polls on the gyro topic published
 
 ### Modifications
 JC - Yaw channel mapped to horizontal thrust for tilted-rotor octocopter - non-flying version.
+JC - Yaw controller still active but needs gains set to zero when mounted on pitching rig
 
 )DESCR_STR");
 
@@ -365,7 +366,7 @@ MulticopterAttitudeControl::sensor_bias_poll()
 /**
  * Attitude controller.
  * Input: 'vehicle_attitude_setpoint' topics (depending on mode)
- * Output: '_rates_sp' vector, '_thrust_sp', '_hthrust_sp'
+ * Output: '_rates_sp' vector, '_thrust_sp', '_xthrust_sp', '_ythrust_sp'
  */
 void
 MulticopterAttitudeControl::control_attitude(float dt)
@@ -465,8 +466,9 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	//yaw_feedforward_rate *= _v_att_sp.yaw_sp_move_rate * _yaw_ff.get();
 	//_rates_sp += yaw_feedforward_rate;
 
-	/* use _v_att_sp.yaw_sp_move_rate to control horizontal thrust */
-	_hthrust_sp = _v_att_sp.yaw_sp_move_rate;
+	/* use _v_att_sp.yaw_sp_move_rate to control horizontal thrust in x-axis*/
+	_xthrust_sp = _v_att_sp.yaw_sp_move_rate;
+	_ythrust_sp = 0.0f;
 
 	/* limit rates */
 	for (int i = 0; i < 3; i++) {
@@ -783,14 +785,15 @@ MulticopterAttitudeControl::run()
 				_actuators.control[1] = (PX4_ISFINITE(_att_control(1))) ? _att_control(1) : 0.0f;
 				_actuators.control[2] = (PX4_ISFINITE(_att_control(2))) ? _att_control(2) : 0.0f;
 				_actuators.control[3] = (PX4_ISFINITE(_thrust_sp)) ? _thrust_sp : 0.0f;
-				_actuators.control[4] = (PX4_ISFINITE(_hthrust_sp)) ? _hthrust_sp : 0.0f;
+				_actuators.control[4] = (PX4_ISFINITE(_xthrust_sp)) ? _xthrust_sp : 0.0f;
+				_actuators.control[5] = (PX4_ISFINITE(_ythrust_sp)) ? _ythrust_sp : 0.0f;
 				_actuators.control[7] = _v_att_sp.landing_gear;
 				_actuators.timestamp = hrt_absolute_time();
 				_actuators.timestamp_sample = _sensor_gyro.timestamp;
 
 				/* scale effort by battery status */
 				if (_bat_scale_en.get() && _battery_status.scale > 0.0f) {
-					for (int i = 0; i < 5; i++) {
+					for (int i = 0; i < 6; i++) {
 						_actuators.control[i] *= _battery_status.scale;
 					}
 				}
