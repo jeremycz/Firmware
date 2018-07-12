@@ -124,7 +124,8 @@ MulticopterAttitudeControl::MulticopterAttitudeControl() :
 	_rates_sp.zero();
 	_rates_int.zero();
 	_thrust_sp = 0.0f;
-	_hthrust_sp = 0.0f;
+	_xthrust_sp = 0.0f;
+	_ythrust_sp = 0.0f;
 	_att_control.zero();
 
 	/* initialize thermal corrections as we might not immediately get a topic update (only non-zero values) */
