@@ -467,7 +467,7 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	//_rates_sp += yaw_feedforward_rate;
 
 	/* use _v_att_sp.yaw_sp_move_rate to control horizontal thrust in x-axis*/
-	_xthrust_sp = _v_att_sp.yaw_sp_move_rate;
+	_xthrust_sp = _v_att_sp.yaw_sp_move_rate / _mc_rate_max(2); // Normalise by mc_yawrate_max to give value between -1:1
 	_ythrust_sp = 0.0f;
 
 	/* limit rates */
