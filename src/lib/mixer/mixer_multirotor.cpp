@@ -164,8 +164,8 @@ MultirotorMixer::mix(float *outputs, unsigned space)
 	float		pitch   = math::constrain(get_control(0, 1) * _pitch_scale, -1.0f, 1.0f);
 	float		yaw     = math::constrain(get_control(0, 2) * _yaw_scale, -1.0f, 1.0f);
 	float		thrust  = math::constrain(get_control(0, 3), 0.0f, 1.0f);
-	float		xthrust = math::constrain(get_control(0, 4), -1.0f, 1.0f);
-	float		ythrust = math::constrain(get_control(0, 5), -1.0f, 1.0f);
+	float		xthrust = math::constrain(get_control(0, 4), -1.0f, 1.0f); // Usually reserved for flaps
+	float		ythrust = math::constrain(get_control(0, 5), -1.0f, 1.0f); // Usually reserved for spoilers
 	float		min_out = 1.0f;
 	float		max_out = 0.0f;
 
@@ -174,7 +174,7 @@ MultirotorMixer::mix(float *outputs, unsigned space)
 	float 		ythrust_rotors[8] = {-1.0, 1.0, 0.4142136, -1.0, 1.0, -0.4142136, -0.4142136, 0.4142136};
 
 	// reverse yaw command to match rotor directions from ardupilot convention
-	yaw *= -1.0;
+	yaw = -1.0 * yaw;
 
 	// clean out class variable used to capture saturation
 	_saturation_status.value = 0;
@@ -184,8 +184,8 @@ MultirotorMixer::mix(float *outputs, unsigned space)
 		float out = roll * _rotors[i].roll_scale +
 			    pitch * _rotors[i].pitch_scale +
 			    thrust * _rotors[i].thrust_scale +
-				xthrust * xthrust_rotors[i] * _yaw_scale +
-				ythrust * ythrust_rotors[i] * _yaw_scale;
+				xthrust * xthrust_rotors[i] +
+				ythrust * ythrust_rotors[i];
 
 		/* calculate min and max output values */
 		if (out < min_out) {
@@ -251,9 +251,11 @@ MultirotorMixer::mix(float *outputs, unsigned space)
 	// mix again but now with thrust boost, scale roll/pitch and also add yaw
 	for (unsigned i = 0; i < _rotor_count; i++) {
 		float out = (roll * _rotors[i].roll_scale +
-			     pitch * _rotors[i].pitch_scale) * roll_pitch_scale +
-			    yaw * _rotors[i].yaw_scale +
-			    (thrust + boost) * _rotors[i].thrust_scale;
+			    	pitch * _rotors[i].pitch_scale +
+					xthrust * xthrust_rotors[i] +
+					ythrust * ythrust_rotors[i]) * roll_pitch_scale +
+			    	yaw * _rotors[i].yaw_scale +
+			    	(thrust + boost) * _rotors[i].thrust_scale;
 
 		// scale yaw if it violates limits. inform about yaw limit reached
 		if (out < 0.0f) {
@@ -275,7 +277,7 @@ MultirotorMixer::mix(float *outputs, unsigned space)
 				yaw = 0.0f;
 
 			} else {
-				yaw = (1.0f - ((roll * _rotors[i].roll_scale + pitch * _rotors[i].pitch_scale) *
+				yaw = (1.0f - ((roll * _rotors[i].roll_scale + pitch * _rotors[i].pitch_scale + xthrust * xthrust_rotors[i] + ythrust * ythrust_rotors[i]) *
 					       roll_pitch_scale + (thrust - thrust_reduction) + boost)) / _rotors[i].yaw_scale;
 			}
 		}
@@ -287,9 +289,11 @@ MultirotorMixer::mix(float *outputs, unsigned space)
 	// add yaw and scale outputs to range idle_speed...1
 	for (unsigned i = 0; i < _rotor_count; i++) {
 		outputs[i] = (roll * _rotors[i].roll_scale +
-			      pitch * _rotors[i].pitch_scale) * roll_pitch_scale +
-			     yaw * _rotors[i].yaw_scale +
-			     (thrust + boost) * _rotors[i].thrust_scale;
+			    	pitch * _rotors[i].pitch_scale +
+					xthrust * xthrust_rotors[i] +
+					ythrust * ythrust_rotors[i]) * roll_pitch_scale +
+			     	yaw * _rotors[i].yaw_scale +
+			     	(thrust + boost) * _rotors[i].thrust_scale;
 
 		/*
 			implement simple model for static relationship between applied motor pwm and motor thrust
