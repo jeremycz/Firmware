@@ -386,24 +386,24 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	// Quatf qd(_v_att_sp.q_d);
 
 	/* calculate estimated and desired roll/pitch angles */
-	float sinr = 2.0 * (_v_att.q(0) * _v_att.q(1) + _v_att.q(2) * _v_att.q(3));
-	float cosr = 1.0 - 2.0 * (_v_att.q(1) * _v_att.q(1) + _v_att.q(2) * _v_att.q(2));
+	float sinr = 2.0f * (_v_att.q[0] * _v_att.q[1] + _v_att.q[2] * _v_att.q[3]);
+	float cosr = 1.0f - 2.0f * (_v_att.q[1] * _v_att.q[1] + _v_att.q[2] * _v_att.q[2]);
 	float roll_angle = atan2f(sinr, cosr);
 
-	float sinp = 2.0 * (_v_att.q(0) * _v_att.q(2) + _v_att.q(3) * _v_att.q(1));
-	float pitch_angle = 0.0;
+	float sinp = 2.0f * (_v_att.q[0] * _v_att.q[2] + _v_att.q[3] * _v_att.q[1]);
+	float pitch_angle = 0.0f;
 	if (fabsf(sinp) >= 1) {
 		pitch_angle = copysignf(M_PI / 2, sinp);
 	} else {
 		pitch_angle = asinf(sinp);
 	}
 
-	float sinrd = 2.0 * (_v_att_sp.q_d(0) * _v_att_sp.q_d(1) + _v_att_sp.q_d(2) * _v_att_sp.q_d(3));
-	float cosrd = 1.0 - 2.0 * (_v_att_sp.q_d(1) * _v_att_sp.q_d(1) + _v_att_sp.q_d(2) * _v_att_sp.q_d(2));
+	float sinrd = 2.0f * (_v_att_sp.q_d[0] * _v_att_sp.q_d[1] + _v_att_sp.q_d[2] * _v_att_sp.q_d[3]);
+	float cosrd = 1.0f - 2.0f * (_v_att_sp.q_d[1] * _v_att_sp.q_d[1] + _v_att_sp.q_d[2] * _v_att_sp.q_d[2]);
 	float roll_angle_d = atan2f(sinrd, cosrd);
 
-	float sinpd = 2.0 * (_v_att_sp.q_d(0) * _v_att_sp.q_d(2) + _v_att_sp.q_d(3) * _v_att_sp.q_d(1));
-	float pitch_angle_d = 0.0;
+	float sinpd = 2.0f * (_v_att_sp.q_d[0] * _v_att_sp.q_d[2] + _v_att_sp.q_d[3] * _v_att_sp.q_d[1]);
+	float pitch_angle_d = 0.0f;
 	if (fabsf(sinpd) >= 1) {
 		pitch_angle_d = copysignf(M_PI / 2, sinpd);
 	} else {
@@ -411,8 +411,8 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	}
 
 	/* recompute estimated and desired attitude quaternions with yaw angle set to zero */
-	Eulerf euler(roll_angle, pitch_angle, 0.f);
-	Eulerf euler_d(roll_angle_d, pitch_angle_d, 0.f);
+	Eulerf euler(roll_angle, pitch_angle, 0.0f);
+	Eulerf euler_d(roll_angle_d, pitch_angle_d, 0.0f);
 	Quatf q(euler);
 	Quatf qd(euler_d);
 
