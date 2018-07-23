@@ -173,9 +173,6 @@ MultirotorMixer::mix(float *outputs, unsigned space)
 	float 		xthrust_rotors[8] = {0.4142136f, -0.4142136f, -1.0f, -0.4142136f, 0.4142136f, 1.0f, -1.0f, 1.0f};
 	float 		ythrust_rotors[8] = {-1.0f, 1.0f, 0.4142136f, -1.0f, 1.0f, -0.4142136f, -0.4142136f, 0.4142136f};
 
-	// reverse yaw command to match rotor directions from ardupilot convention
-	yaw = -1.0f * yaw;
-
 	// clean out class variable used to capture saturation
 	_saturation_status.value = 0;
 
