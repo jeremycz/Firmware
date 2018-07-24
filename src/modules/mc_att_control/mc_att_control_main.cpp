@@ -468,8 +468,13 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	//_rates_sp += yaw_feedforward_rate;
 
 	/* use _v_att_sp.yaw_sp_move_rate to control horizontal thrust in x-axis*/
-	_xthrust_sp = 0.5f * _v_att_sp.yaw_sp_move_rate / _mc_rate_max(2); // Normalise by mc_yawrate_max to give value between -1:1
-	_ythrust_sp = 0.0f;
+	if (_v_control_mode.flag_control_offboard_enabled) {
+		_xthrust_sp = 0.5f * _v_rates_sp.yaw / _mc_rate_max(2);
+		_ythrust_sp = 0.0f;
+	} else {
+		_xthrust_sp = 0.5f * _v_att_sp.yaw_sp_move_rate / _mc_rate_max(2); // Normalise by mc_yawrate_max to give value between -1:1
+		_ythrust_sp = 0.0f;
+	}
 
 	/* limit rates */
 	for (int i = 0; i < 3; i++) {
