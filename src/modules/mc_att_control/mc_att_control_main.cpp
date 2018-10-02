@@ -389,41 +389,6 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	Quatf q(_v_att.q);
 	Quatf qd(_v_att_sp.q_d);
 
-	/* calculate estimated and desired roll/pitch angles */
-	//float sinr = 2.0f * (_v_att.q[0] * _v_att.q[1] + _v_att.q[2] * _v_att.q[3]);
-	//float cosr = 1.0f - 2.0f * (_v_att.q[1] * _v_att.q[1] + _v_att.q[2] * _v_att.q[2]);
-	//float roll_angle = atan2f(sinr, cosr);
-
-	//float sinp = 2.0f * (_v_att.q[0] * _v_att.q[2] + _v_att.q[3] * _v_att.q[1]);
-	//float pitch_angle = 0.0f;
-	//if (fabsf(sinp) >= 1) {
-	//	pitch_angle = copysignf(M_PI / 2, sinp);
-	//} else {
-	//	pitch_angle = asinf(sinp);
-	//}
-
-	float sinrd = 2.0f * (_v_att_sp.q_d[0] * _v_att_sp.q_d[1] + _v_att_sp.q_d[2] * _v_att_sp.q_d[3]);
-	float cosrd = 1.0f - 2.0f * (_v_att_sp.q_d[1] * _v_att_sp.q_d[1] + _v_att_sp.q_d[2] * _v_att_sp.q_d[2]);
-	float roll_angle_d = atan2f(sinrd, cosrd);
-
-	//float sinpd = 2.0f * (_v_att_sp.q_d[0] * _v_att_sp.q_d[2] + _v_att_sp.q_d[3] * _v_att_sp.q_d[1]);
-	//float pitch_angle_d = 0.0f;
-	//if (fabsf(sinpd) >= 1) {
-	//	pitch_angle_d = copysignf(M_PI / 2, sinpd);
-	//} else {
-	//	pitch_angle_d = asinf(sinpd);
-	//}
-
-	//float sinyd = 2.0f * (_v_att_sp.q_d[0] * _v_att_sp.q_d[3] + _v_att_sp.q_d[1] * _v_att_sp.q_d[2]);
-	//float cosyd = 1.0f - 2.0f * (_v_att_sp.q_d[2] * _v_att_sp.q_d[2] + _v_att_sp.q_d[3] * _v_att_sp.q_d[3]);  
-	//float yaw_angle_d = atan2f(sinyd, cosyd);
-
-	/* recompute estimated and desired attitude quaternions with yaw angle set to zero */
-	//Eulerf euler(roll_angle, pitch_angle, 0.0f);
-	//Eulerf euler_d(roll_angle_d, pitch_angle_d, 0.0f);
-	//Quatf q(euler);
-	//Quatf qd(euler_d);
-
 	/* ensure input quaternions are exactly normalized because acosf(1.00001) == NaN */
 	q.normalize();
 	qd.normalize();
@@ -446,6 +411,7 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	/* mix full and reduced desired attitude */
 	Quatf q_mix = qd_red.inversed() * qd;
 	q_mix *= math::signNoZero(q_mix(0));
+	
 	/* catch numerical problems with the domain of acosf and asinf */
 	q_mix(0) = math::constrain(q_mix(0), -1.f, 1.f);
 	q_mix(3) = math::constrain(q_mix(3), -1.f, 1.f);
@@ -476,13 +442,8 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	//_rates_sp += yaw_feedforward_rate;
 
 	/* use _v_att_sp.yaw_sp_move_rate to control horizontal thrust in x-axis*/
-	if (_v_control_mode.flag_control_offboard_enabled) {
-		_xthrust_sp = roll_angle_d / (10.0f * (float)M_PI / 180.0f);
-		_ythrust_sp = 0.0f;
-	} else {
-		_xthrust_sp = 0.5f * _v_att_sp.yaw_sp_move_rate / _mc_rate_max(2); // Normalise by mc_yawrate_max to give value between -1:1
-		_ythrust_sp = 0.0f;
-	}
+	_xthrust_sp = 0.5f * _v_att_sp.yaw_sp_move_rate / _mc_rate_max(2); // Normalise by mc_yawrate_max to give value between -1:1
+	_ythrust_sp = 0.0f;
 
 	/* limit rates */
 	for (int i = 0; i < 3; i++) {
