@@ -378,12 +378,12 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	/* prepare yaw weight from the ratio between roll/pitch and yaw gains */
 	Vector3f attitude_gain = _attitude_p;
 	const float roll_pitch_gain = (attitude_gain(0) + attitude_gain(1)) / 2.f;
-	const float yaw_w = math::constrain(attitude_gain(2) / roll_pitch_gain, 0.f, 1.f);
+	//const float yaw_w = math::constrain(attitude_gain(2) / roll_pitch_gain, 0.f, 1.f);
 	attitude_gain(2) = roll_pitch_gain;
 
 	/* ensure yaw gain is zero and yaw_w is kept at default value */
 	attitude_gain(2) = 0.f;
-	yaw_w = 2.8f / 6.5f;
+	const float yaw_w = 2.8f / 6.5f;
 
 	/* get estimated and desired vehicle attitude */
 	Quatf q(_v_att.q);
@@ -411,7 +411,7 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	/* mix full and reduced desired attitude */
 	Quatf q_mix = qd_red.inversed() * qd;
 	q_mix *= math::signNoZero(q_mix(0));
-	
+
 	/* catch numerical problems with the domain of acosf and asinf */
 	q_mix(0) = math::constrain(q_mix(0), -1.f, 1.f);
 	q_mix(3) = math::constrain(q_mix(3), -1.f, 1.f);
