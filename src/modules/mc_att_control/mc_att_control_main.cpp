@@ -381,6 +381,10 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	const float yaw_w = math::constrain(attitude_gain(2) / roll_pitch_gain, 0.f, 1.f);
 	attitude_gain(2) = roll_pitch_gain;
 
+	/* ensure yaw gain is zero and yaw_w is kept at default value */
+	attitude_gain(2) = 0.f;
+	yaw_w = 2.8f / 6.5f;
+
 	/* get estimated and desired vehicle attitude */
 	Quatf q(_v_att.q);
 	Quatf qd(_v_att_sp.q_d);
