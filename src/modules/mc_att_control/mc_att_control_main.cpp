@@ -377,7 +377,7 @@ MulticopterAttitudeControl::control_attitude(float dt)
 
 	/* prepare yaw weight from the ratio between roll/pitch and yaw gains */
 	Vector3f attitude_gain = _attitude_p;
-	const float roll_pitch_gain = (attitude_gain(0) + attitude_gain(1)) / 2.f;
+	//const float roll_pitch_gain = (attitude_gain(0) + attitude_gain(1)) / 2.f;
 	//const float yaw_w = math::constrain(attitude_gain(2) / roll_pitch_gain, 0.f, 1.f);
 	const float yaw_w = 2.8f / 6.5f; // yaw_w kept at value based on default roll/pitch/yaw gains
 	//attitude_gain(2) = roll_pitch_gain;
