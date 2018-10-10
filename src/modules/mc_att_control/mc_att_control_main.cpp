@@ -385,7 +385,15 @@ MulticopterAttitudeControl::control_attitude(float dt)
 
 	/* get estimated and desired vehicle attitude */
 	Quatf q(_v_att.q);
-	Quatf qd(_v_att_sp.q_d);
+	//Quatf qd(_v_att_sp.q_d);
+	Quatf qd_temp(_v_att_sp.q_d);
+
+	/* force desired yaw angle to be equal to actual yaw angle */
+	float r_temp = atan2f(2.f * (qd_temp(0) * qd_temp(1) + qd_temp(2) * qd_temp(3)), 1.f - 2.f * (qd_temp(1) * qd_temp(1) + qd_temp(2) * qd_temp(2)));
+	float p_temp = asinf(2.f * (qd_temp(0) * qd_temp(2) - qd_temp(3) * qd_temp(1)));
+	float y_temp = atan2f(2.f * (q(0) * q(3) + q(1) * q(2)), 1.f - 2.f * (q(2) * q(2) + q(3) * q(3)));
+	Eulerf ed_temp(r_temp, p_temp, y_temp);
+	Quatf qd(ed_temp);
 
 	/* ensure input quaternions are exactly normalized because acosf(1.00001) == NaN */
 	q.normalize();
